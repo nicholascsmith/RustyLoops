@@ -48,7 +48,11 @@ fn mark_executable(_file: &std::path::Path) {
     }
 }
 
-/// The old `wave` name: best effort, the status reports only the `synkopa` launcher.
+/// The terminal command this build installs (upstream installs `synkopa` and `wave`).
+pub const CMD: &str = "rustyloops";
+
+/// Writes a launcher unless it already says `body`; best effort.
+#[cfg(windows)]
 fn write_launcher(file: &std::path::Path, body: &str) {
     if std::fs::read_to_string(file).is_ok_and(|t| t == body) {
         return;
@@ -70,16 +74,16 @@ pub fn install() -> CliStatus {
     let exe = match std::env::current_exe() {
         Ok(e) => e,
         Err(e) => {
-            return CliStatus { installed: false, command: "synkopa".into(), path: None, note: Some(format!("cannot locate the app: {e}")) }
+            return CliStatus { installed: false, command: CMD.into(), path: None, note: Some(format!("cannot locate the app: {e}")) }
         }
     };
     let Some(dir) = target_dir() else {
-        return CliStatus { installed: false, command: "synkopa".into(), path: None, note: Some("no home folder to install into".into()) };
+        return CliStatus { installed: false, command: CMD.into(), path: None, note: Some("no home folder to install into".into()) };
     };
     #[cfg(windows)]
-    let (file, alias, body) = (dir.join("synkopa.cmd"), dir.join("wave.cmd"), format!("@echo off\r\n\"{}\" --cli %*\r\n", exe.display()));
+    let (file, body) = (dir.join(format!("{CMD}.cmd")), format!("@echo off\r\n\"{}\" --cli %*\r\n", exe.display()));
     #[cfg(not(windows))]
-    let (file, alias, body) = (dir.join("synkopa"), dir.join("wave"), format!("#!/bin/sh\nexec \"{}\" --cli \"$@\"\n", exe.display()));
+    let (file, body) = (dir.join(CMD), format!("#!/bin/sh\nexec \"{}\" --cli \"$@\"\n", exe.display()));
     let unchanged = std::fs::read_to_string(&file).map(|t| t == body).unwrap_or(false);
     if !unchanged {
         if let Err(e) = std::fs::create_dir_all(&dir).and_then(|_| std::fs::write(&file, &body)) {
@@ -92,22 +96,20 @@ pub fn install() -> CliStatus {
         }
         mark_executable(&file);
     }
-    write_launcher(&alias, &body);
     // Git Bash / MSYS (the shell coding agents run on Windows) does not run a `.cmd` without its
     // extension, so `synkopa` was "command not found" there. An extensionless sh script beside it
     // fixes that; cmd and PowerShell ignore it (not in PATHEXT) — npm's shims do the same.
     #[cfg(windows)]
     {
         let sh = sh_launcher(&exe);
-        write_launcher(&dir.join("synkopa"), &sh);
-        write_launcher(&dir.join("wave"), &sh);
+        write_launcher(&dir.join(CMD), &sh);
     }
     let note = if on_path(&dir) {
         None
     } else {
         Some(format!("{} is not on PATH — add it, or call {} directly", dir.display(), file.display()))
     };
-    CliStatus { installed: true, command: "synkopa".into(), path: Some(file.display().to_string()), note }
+    CliStatus { installed: true, command: CMD.into(), path: Some(file.display().to_string()), note }
 }
 
 #[cfg(test)]

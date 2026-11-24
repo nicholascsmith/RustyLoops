@@ -19,3 +19,15 @@ export const FORK = {
 
 /** Built-in effects the picker does not offer (a project that has one still plays it). */
 export const HIDDEN_FX: ReadonlySet<BuiltinKind> = new Set<BuiltinKind>(FORK.vocal ? [] : ['tune', 'voice', 'rider', 'deess', 'denoise']);
+
+/** This build's name, shown wherever upstream's text says "Synkopa". */
+export const APP_NAME = 'Rusty Loops';
+
+// "Synkopa" and its Polish forms (Synkopy, Synkopę, Synkopie, Synkopą); the new name stays undeclined
+const UPSTREAM_NAME = /Synkop(?:a|y|ę|ie|ą)(?!\p{L})/gu;
+
+// Upstream's tests check its own wording, so the test runner sees upstream's name (fork.test.ts checks the swap)
+const RENAME = import.meta.env.MODE !== 'test';
+
+/** Upstream's text with this build's name in it. */
+export const brand = (text: string, rename = RENAME): string => (rename ? text.replace(UPSTREAM_NAME, APP_NAME) : text);

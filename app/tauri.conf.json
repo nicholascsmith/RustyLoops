@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Synkopa",
+  "productName": "Rusty Loops",
   "version": "0.9.34",
-  "identifier": "studio.wave.app",
+  "identifier": "io.github.nicholascsmith.rustyloops",
   "build": {
     "devUrl": "http://localhost:1420",
     "frontendDist": "../ui/dist",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Synkopa",
+        "title": "Rusty Loops",
         "width": 1440,
         "height": 900,
         "minWidth": 960,

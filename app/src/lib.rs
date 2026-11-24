@@ -1636,7 +1636,7 @@ fn start_app(tapp: &mut tauri::App, boot: Arc<boot::Boot>, reopen_last: bool) {
         let _ = h.emit("state", dto);
     });
     if let Some(w) = tapp.get_webview_window("main") {
-        let _ = w.set_title("Synkopa");
+        let _ = w.set_title("Rusty Loops");
     }
     app.boot.mark("tauri setup done");
     // the last project and the CLI session come in off the critical path: the UI's first

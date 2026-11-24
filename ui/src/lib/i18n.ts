@@ -3,6 +3,7 @@ import { en } from '../i18n/en';
 import { pl } from '../i18n/pl';
 import { names as fxNames } from '../i18n/names-fx';
 import { names as synthNames, plNames } from '../i18n/names-synth';
+import { brand } from '../fork';
 
 export type Lang = 'en' | 'pl';
 export type TranslationKey = keyof typeof en;
@@ -16,7 +17,7 @@ export function setLang(value: Lang): void {
 }
 
 export function t(key: TranslationKey, vars: Record<string, string | number> = {}): string {
-  const text: string = (lang() === 'pl' ? pl : en)[key];
+  const text: string = brand((lang() === 'pl' ? pl : en)[key]);
   return text.replace(/\{([^{}]+)\}/g, (match, name: string) =>
     Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match);
 }

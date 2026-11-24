@@ -1,5 +1,6 @@
 import { SelectPopup } from './ui/SelectPopup';
 import { askChatGPT } from './views/Ask';
+import { APP_NAME } from './fork';
 import { t as tl } from './lib/i18n';
 import { closeNotebook, NB } from './state/notebook';
 import { ConfirmDialog } from './ui/Confirm';
@@ -331,7 +332,7 @@ export function App() {
     if (U.musicWin?.fxId != null && !findFx(U.musicWin!.fxId)) setU('musicWin', null);
     if (STEMS.win != null && !S.project.clips.some(c => c.id === STEMS.win)) closeStems();
   });
-  effect(() => { be().setTitle((S.path ? baseName(S.path) : tl('a.tb.untitled')) + (S.dirty ? ' •' : '') + ' — Synkopa'); });
+  effect(() => { be().setTitle((S.path ? baseName(S.path) : tl('a.tb.untitled')) + (S.dirty ? ' •' : '') + ' — ' + APP_NAME); });
 
   return (
     <>
