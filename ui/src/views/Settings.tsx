@@ -21,6 +21,7 @@ import { UpdatesSettings } from './Updates';
 import { setPluginScan } from './FxPicker';
 import type { TranslationKey } from '../lib/i18n';
 import { DialogBoundary } from '../ui/PanelBoundary';
+import { FORK } from '../fork';
 
 const RATES = [44100, 48000, 88200, 96000];
 const BUFFERS = [32, 64, 128, 256, 512, 1024, 2048];
@@ -122,6 +123,7 @@ function SettingsDialog() {
                 </Show>}</Show>
                 <For each={devs().outputs}>{d => <option value={d}>{d}</option>}</For>
               </select>
+              <Show when={FORK.audioRecording}>
               <label>{t('d.set.input')}</label>
               <Show when={s().host !== 'asio'} fallback={<span class="note">{t('d.set.asio.sharedinput')}</span>}>
                 <select ref={inSel} class="sel" value={kept(inSel, opt(s().input))} disabled={busy()} onChange={e => apply({ input: e.currentTarget.value || null })}>
@@ -135,6 +137,7 @@ function SettingsDialog() {
                 onChange={e => apply({ inputChannel: +e.currentTarget.value })}>
                 <For each={Array.from({ length: Math.max(s().inputChannels, (s().inputChannel ?? 0) + 1) }, (_, i) => i)}>{i => <option value={String(i)}>{t('d.set.inmono', { n: i + 1 })}</option>}</For>
               </select>
+              </Show>
             </div>
             <div class="sechd">{t('d.set.sec.perf')}</div>
             <div class="form">
@@ -174,6 +177,7 @@ function SettingsDialog() {
               <Show when={s().note}><span /><span class="note">{s().note}</span></Show>
               <Show when={audioApplyError() ?? err()}>{error => <><span /><span class="note err">{error()}</span></>}</Show>
             </div>
+            <Show when={FORK.audioRecording}>
             <div class="sechd">{t('d.set.sec.rec')}</div>
             <div class="form">
               <label>{t('d.set.recoffset')}</label>
@@ -183,6 +187,7 @@ function SettingsDialog() {
                 <span class="note warn">{t('d.set.dropouts.note', { n: (s().inputUnderruns ?? 0) + (s().inputOverruns ?? 0) })}</span>
               </Show>
             </div>
+            </Show>
             <div class="sechd">{t('d.set.sec.cli')}</div>
             <div class="form">
               <label>{t('d.set.cli')}</label>

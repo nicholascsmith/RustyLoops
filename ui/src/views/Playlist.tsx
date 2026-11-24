@@ -40,6 +40,7 @@ import { rgba, T, theme } from '../ui/theme';
 import { markerAtX } from '../lib/markers';
 import * as MK from '../state/markers';
 import { drawMarkers, drawMarkerTicks, MARKER_H, markerBoxes } from './markerDraw';
+import { FORK } from '../fork';
 
 
 /** Shared geometry, so the browser and OS drops can find a beat/track under the pointer. */
@@ -1325,7 +1326,7 @@ export function Playlist() {
           ...(c.ref in S.missing ? [{ t: 'item', label: tl('d.miss.menu'), title: S.missing[c.ref], act: () => setU('missingOpen', true) } as MenuItem] : []),
           { t: 'item', label: tl('a.pl.makeUnique'), title: tl('a.pl.makeUniqueAudioTip'), act: () => A.makeUnique(c) } as MenuItem,
           { t: 'item', label: tl('a.pl.editSample'), kbd: tl('a.pl.dblClick'), act: () => A.openEditor(c.id) } as MenuItem,
-          { t: 'item', label: tl('a.pl.editPitch'), kbd: c.tune?.notes.length ? tl('a.pl.edited') : '', act: () => A.openPitchEditor(c.id) } as MenuItem,
+          ...(FORK.vocal ? [{ t: 'item', label: tl('a.pl.editPitch'), kbd: c.tune?.notes.length ? tl('a.pl.edited') : '', act: () => A.openPitchEditor(c.id) } as MenuItem] : []),
           // a playlist drop plays the source directly; this adds the rack entry for it (FL's audio clip channel)
           { t: 'item', label: tl('a.pl.toSampler'), title: tl(hasSamplerOf(c.ref) ? 'a.pl.toSamplerHave' : 'a.pl.toSamplerTip'), disabled: hasSamplerOf(c.ref), act: () => addSampler(c.ref) } as MenuItem,
           // how a stretch plays (the clip's stretch factor in the label: set it in Stretch mode)
@@ -1333,11 +1334,11 @@ export function Playlist() {
           ...(S.stretching[c.id] ? [{ t: 'item', label: tl('a.pl.stretchFailed'), title: S.stretching[c.id], disabled: true, act: () => {} } as MenuItem] : []),
           { t: 'item', label: tl('a.pl.detectTempoKey'), act: () => A.openMusicAnalysis({ clipId: c.id }) } as MenuItem,
           { t: 'item', label: tl('a.pl.trimRegion'), title: tl('d.smp.trim.tip'), act: () => void A.trimClip(c.id) } as MenuItem,
-          { t: 'item', label: tl('a.pl.extractStems'), title: tl('a.pl.extractStemsTip'), act: () => openStems(c.id) } as MenuItem,
-          { t: 'sub', label: tl('a.pl.autoVocal'), items: [
+          ...(FORK.analysis ? [{ t: 'item', label: tl('a.pl.extractStems'), title: tl('a.pl.extractStemsTip'), act: () => openStems(c.id) } as MenuItem] : []),
+          ...(FORK.vocal ? [{ t: 'sub', label: tl('a.pl.autoVocal'), items: [
             { t: 'item', label: tl('a.pl.autoVocalSing'), act: () => void A.autoVocal(c.id, 'natural'), title: tl('a.pl.autoVocalSingTip') },
             { t: 'item', label: tl('a.pl.autoVocalRap'), act: () => void A.autoVocal(c.id, 'hard'), title: tl('a.pl.autoVocalRapTip') },
-          ] } as MenuItem,
+          ] } as MenuItem] : []),
         ] : []),
       ]),
       { t: 'sec', label: tl('a.pl.secMix') },
@@ -1371,10 +1372,10 @@ export function Playlist() {
       { t: 'sep' },
       { t: 'item', label: tl('a.pl.removeUnused') + (unused ? ' (' + unused + ')' : ''), disabled: !unused, act: () => CA.removeUnused(comp) },
       { t: 'item', label: tl('a.pl.flattenComp'), title: tl('a.pl.flattenTip'), act: () => CA.flatten(c.id) },
-      { t: 'sub', label: tl('a.pl.autoVocal'), items: [
+      ...(FORK.vocal ? [{ t: 'sub', label: tl('a.pl.autoVocal'), items: [
         { t: 'item', label: tl('a.pl.autoVocalSing'), title: tl('a.pl.autoVocalCompTip'), act: () => void A.autoVocalComp(c.id, 'natural') },
         { t: 'item', label: tl('a.pl.autoVocalRap'), act: () => void A.autoVocalComp(c.id, 'hard') },
-      ] },
+      ] } as MenuItem] : []),
       { t: 'sep' },
       { t: 'item', label: tl('a.pl.delete'), kbd: 'Del', danger: true, act: () => A.delIds(U.sel.includes(c.id) ? [...U.sel] : [c.id]) },
     ], 470);

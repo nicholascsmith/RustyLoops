@@ -9,6 +9,7 @@ import { findFx, insName, S } from '../state/store';
 import { U } from '../state/ui';
 import { DialogBoundary } from '../ui/PanelBoundary';
 import { ChordsPanel } from './ChordsPanel';
+import { FORK } from '../fork';
 
 const keyLabel = (root: number, minor: boolean) => `${NOTE_NAMES[root % 12]} ${t(minor ? 'd.music.minor' : 'd.music.major')}`;
 
@@ -194,7 +195,7 @@ export function MusicDialog() {
                 </div>
 
                 {/* ---- CHORDS (an audio clip) ---- */}
-                <Show when={U.musicWin?.clipId != null}>
+                <Show when={FORK.analysis && U.musicWin?.clipId != null}>
                   <ChordsPanel clipId={U.musicWin!.clipId!} />
                 </Show>
               </div>

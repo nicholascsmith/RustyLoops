@@ -11,6 +11,7 @@ import { presetList } from '../lib/presets';
 import * as A from '../state/actions';
 import { S } from '../state/store';
 import { ensurePluginScan, pluginScan, runPluginScan, setPluginScan } from '../state/pluginScan';
+import { FORK, HIDDEN_FX } from '../fork';
 import { say, setU, U } from '../state/ui';
 import { openNotebook } from '../state/notebook';
 import { NOTEBOOK_ICON } from './Notebook';
@@ -57,14 +58,16 @@ const CATS: Cat[] = [
   { id: 'all', label: 'c.picker.cat.all' },
   { id: 'recent', label: 'c.picker.cat.recent' },
   { id: 'fav', label: 'c.picker.cat.fav' },
-  { id: 'vocal', label: 'c.picker.cat.vocal', types: ['tune', 'voice', 'rider', 'deess'] },
-  { id: 'repair', label: 'c.picker.cat.repair', types: ['denoise', 'gate', 'deess'] },
+  ...(FORK.vocal ? [
+    { id: 'vocal', label: 'c.picker.cat.vocal', types: ['tune', 'voice', 'rider', 'deess'] },
+    { id: 'repair', label: 'c.picker.cat.repair', types: ['denoise', 'gate', 'deess'] },
+  ] as Cat[] : []),
   { id: 'dyn', label: 'c.picker.cat.dyn', types: ['rider', 'comp', 'fet', 'gate', 'multiband', 'limit'] },
   { id: 'tone', label: 'c.picker.cat.tone', types: ['eq', 'filter', 'sat'] },
   { id: 'mod', label: 'c.picker.cat.mod', types: ['chorus', 'phaser', 'filter'] },
   { id: 'space', label: 'c.picker.cat.space', types: ['delay', 'half', 'warp', 'reverb'] },
   { id: 'image', label: 'c.picker.cat.image', types: ['stereo', 'analyzer'] },
-  { id: 'vst', label: 'c.picker.cat.vst' },
+  ...(FORK.plugins ? [{ id: 'vst', label: 'c.picker.cat.vst' } as Cat] : []),
   { id: 'tools', label: 'c.picker.cat.tools' },
 ];
 
@@ -125,7 +128,7 @@ function FxPicker(props: { insId: Id; x: number; y: number }) {
 
   const insName = () => { const m = S.project.inserts.find(i => i.id === props.insId); return m ? (m.id === 0 ? 'Master' : m.name) : ''; };
 
-  const builtins = createMemo<Entry[]>(() => FX_ORDER.filter(t => t !== 'fet' && S.catalog?.types[t]).map(t => ({
+  const builtins = createMemo<Entry[]>(() => FX_ORDER.filter(t => t !== 'fet' && !HIDDEN_FX.has(t) && S.catalog?.types[t]).map(t => ({
     key: t, builtin: t, name: t === 'comp' ? tr('c.picker.compressor') : tName(S.catalog!.types[t]!.name), desc: DESC[t] ? tr(DESC[t]) : tr(FXMETA[t].tag),
     presets: presetList(S.catalog, t).length + (t === 'comp' ? presetList(S.catalog, 'fet').length : 0),
   })));

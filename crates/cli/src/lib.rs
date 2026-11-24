@@ -1430,10 +1430,7 @@ fn run(cx: &Cx, cmd: &str, a: &Args) -> Result<Value, Fail> {
             let (command, args) = auto_vocal_args(a)?;
             send(cx, a, command, args)
         }
-        "f0-model" if a.has("install") => {
-            eprintln!("downloading the RMVPE model (~345 MB); licence: {}", wave_rmvpe::LICENSE_NOTE);
-            send(cx, a, "f0_model_install", json!({}))
-        }
+        "f0-model" if a.has("install") => send(cx, a, "f0_model_install", json!({})),
         "f0-model" => send(cx, a, "f0_model", json!({})),
         "pitch" => pitch(cx, a),
         "midi" => midi(cx, a),
@@ -1715,18 +1712,11 @@ fn tune_file(a: &Args) -> Result<Value, Fail> {
         speed: None,
         melody: None,
     };
-    let model = if a.has("yin") {
-        None
-    } else {
-        let explicit = a.get("model");
-        let path = explicit.map(std::path::PathBuf::from).unwrap_or_else(wave_rmvpe::model_path);
-        match wave_rmvpe::Rmvpe::load(&path) {
-            Ok(m) => Some(m),
-            Err(e) if explicit.is_some() => return Err(Fail::App(e)),
-            Err(_) => None,
-        }
-    };
-    let est = model.as_ref().map(|m| m as &dyn wave_engine::pitch::F0Estimator);
+    // this build has no RMVPE model: the reference is always analysed with YIN
+    if a.get("model").is_some() {
+        return Err(Fail::Usage("--model: the RMVPE pitch model is not available in this build".into()));
+    }
+    let est: Option<&dyn wave_engine::pitch::F0Estimator> = None;
     let (out, target, analysis) = wave_engine::reference::tune_audio(&take, &reference, &params, est);
     write_wav(std::path::Path::new(out_p), out.content(), out.sr).map_err(|e| Fail::App(format!("{out_p}: {e}")))?;
     if let Some(j) = a.get("json") {

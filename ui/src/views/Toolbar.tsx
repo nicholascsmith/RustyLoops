@@ -44,6 +44,7 @@ import { KeyBadge } from './KeyBadge';
 import { PosReadout, PreviewLine, SongPos } from './ToolbarParts';
 import { shownPreview } from '../state/previewWave';
 import { ChipBoundary, DialogBoundary } from '../ui/PanelBoundary';
+import { FORK } from '../fork';
 
 export const TOOLS: [Tool, string, TranslationKey][] = [
   ['draw', 'P', 'a.tb.toolDraw'], ['paint', 'B', 'a.tb.toolPaint'], ['erase', 'D', 'a.tb.toolErase'], ['mute', 'T', 'a.tb.toolMute'], ['slice', 'C', 'a.tb.toolSlice'], ['select', 'E', 'a.tb.toolSelect'],
@@ -127,7 +128,7 @@ export function Toolbar() {
     e.preventDefault(); e.stopPropagation();
     openMenu(e.clientX, e.clientY, [
       { t: 'title', label: t('a.tb.recWhat') },
-      { t: 'item', label: t('a.tb.recAudio'), title: t('a.tb.recAudioTip'), checked: T().recAudio, act: () => void A.setRecFilter('audio', !T().recAudio) },
+      ...(FORK.audioRecording ? [{ t: 'item', label: t('a.tb.recAudio'), title: t('a.tb.recAudioTip'), checked: T().recAudio, act: () => void A.setRecFilter('audio', !T().recAudio) } as MenuItem] : []),
       { t: 'item', label: t('a.tb.recNotes'), title: t('a.tb.recNotesTip'), checked: T().recNotes, act: () => void A.setRecFilter('notes', !T().recNotes) },
       { t: 'item', label: t('a.tb.recAutomation'), title: t('a.tb.recAutomationTip'), checked: T().recAutomation, act: () => void A.setRecAutomation(!T().recAutomation) },
       { t: 'item', label: t('a.tb.recAutoLatch'), title: t('a.tb.recAutoLatchTip'), disabled: !T().recAutomation, checked: T().recAutoLatch, act: () => void A.setRecAutoLatch(!T().recAutoLatch) },
@@ -219,7 +220,7 @@ export function Toolbar() {
             <Show when={T().rec}>
               <span class="recdest" title={recDest().tip}>● {recDest().label}</span>
             </Show>
-            <div class="row inrow" title={t('a.tb.inLevel')} style={{ gap: '6px', display: T().rec || T().monitor ? 'flex' : 'none' }}>
+            <div class="row inrow" title={t('a.tb.inLevel')} style={{ gap: '6px', display: FORK.audioRecording && (T().rec || T().monitor) ? 'flex' : 'none' }}>
               <span class="tag9">IN</span>
               <div class="inmeter"><div ref={inEl} /></div>
             </div>
@@ -260,9 +261,9 @@ export function Toolbar() {
         {/* the transport's switches, under the pattern: plain icons, lit when on */}
         <div class="tbc tbtoggles">
           <ChipBoundary name={t('d.ui.pn.transport')}>
-            <button title={t('a.tb.monTip')} class={['tsw monbtn', { on: T().monitor }]} aria-pressed={T().monitor ? 'true' : 'false'} onClick={A.toggleMonitor}>
+            <Show when={FORK.audioRecording}><button title={t('a.tb.monTip')} class={['tsw monbtn', { on: T().monitor }]} aria-pressed={T().monitor ? 'true' : 'false'} onClick={A.toggleMonitor}>
               <Icon d="M4 15v-3a8 8 0 0 1 16 0v3 M3 14h4v7H3z M17 14h4v7h-4z" size={13} />
-            </button>
+            </button></Show>
             <button title={t('a.tb.metroTip')} class={['tsw metrobtn', { on: T().metro }]} aria-pressed={T().metro ? 'true' : 'false'} onClick={() => void A.setTransportFlag('metro', !T().metro)}>
               <Icon d="M9 3h6l4 18H5z M12 16l6-9" size={13} />
             </button>
@@ -447,7 +448,7 @@ function MenuBar() {
       // the transport toggles the toolbar hides first on a narrow window
       { t: 'item', label: t('a.mn.metro'), kbd: 'Ctrl+M', checked: S.transport.metro, act: () => void A.setTransportFlag('metro', !S.transport.metro) },
       { t: 'item', label: t('a.mn.countIn'), checked: S.transport.countIn, act: () => void A.setTransportFlag('countIn', !S.transport.countIn) },
-      { t: 'item', label: t('a.mn.monitor'), checked: S.transport.monitor, act: A.toggleMonitor },
+      ...(FORK.audioRecording ? [{ t: 'item', label: t('a.mn.monitor'), checked: S.transport.monitor, act: A.toggleMonitor } as MenuItem] : []),
       { t: 'item', label: t('a.mn.typing'), checked: typingOn(), act: () => setTypingOn(!typingOn()) },
       { t: 'sep' },
       { t: 'item', label: t('a.mn.follow'), kbd: 'F', checked: U.follow, act: () => setU('follow', !U.follow) },
@@ -461,7 +462,7 @@ function MenuBar() {
       { t: 'item', label: t('a.cmd.title'), glyph: G.shortcuts, kbd: 'Ctrl+K', act: () => setPaletteOpen(true) },
       { t: 'item', label: t('a.mn.shortcuts'), glyph: G.shortcuts, kbd: '?', act: () => setU('help', true) },
       { t: 'sep' },
-      { t: 'item', label: t('a.mn.updates'), glyph: G.updates, act: () => void checkUpdates() },
+      ...(FORK.updates ? [{ t: 'item', label: t('a.mn.updates'), glyph: G.updates, act: () => void checkUpdates() } as MenuItem] : []),
       { t: 'item', label: t('a.mn.whatsNew'), glyph: G.whatsNew, act: () => void showWhatsNew() },
       { t: 'sep' },
       { t: 'item', label: t('a.mn.discord'), glyph: G.discord, act: () => void be().openDiscord().catch(e => notify(t('a.mn.discordFailed', { error: String(e) }))) },

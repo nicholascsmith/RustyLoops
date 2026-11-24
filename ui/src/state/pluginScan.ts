@@ -4,8 +4,9 @@ import { createSignal } from '../lib/reactive';
 import { be } from '../api/backend';
 import type { PluginScan } from '../api/types';
 import { say } from './ui';
+import { FORK } from '../fork';
 
-const [scan, setScan] = createSignal<PluginScan | null>(null);
+const [scan, setScan] = createSignal<PluginScan | null>(FORK.plugins ? null : { plugins: [], instruments: [], unavailable: {} });
 let scanning: Promise<PluginScan> | null = null;
 
 /** The last scan, or null while none has finished. */
@@ -13,6 +14,7 @@ export const pluginScan = scan;
 
 /** Scans (`rescan`: also opens new or changed modules); resolves with the result. One at a time. */
 export function runPluginScan(rescan: boolean): Promise<PluginScan> {
+  if (!FORK.plugins) return Promise.resolve(scan()!);
   if (scanning) return scanning;
   if (rescan) setScan(null);
   scanning = be().pluginScan(rescan)

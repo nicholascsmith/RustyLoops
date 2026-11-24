@@ -15,6 +15,9 @@ use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_updater::{Update, UpdaterExt};
 
+/// Whether this build looks for new releases at all.
+const FORK_UPDATES: bool = false;
+
 pub const REPO_URL: &str = "https://github.com/miskibin/synkopa";
 
 /// Release notes are the CHANGELOG section; the release body continues after this line with
@@ -141,6 +144,10 @@ impl Throttle {
 
 /// Asks GitHub whether a newer release exists. The found update is kept for `download`.
 pub async fn check(handle: &AppHandle, st: &State) -> Result<Option<UpdateInfo>, String> {
+    // this build is a fork: upstream's releases would replace it with the full app
+    if !FORK_UPDATES {
+        return Err("updates are off in this build; update it by rebuilding from its repository".into());
+    }
     // The passive NSIS installer should reopen the last project from settings. The
     // updater's default /ARGS would replay the project supplied to the original process.
     #[cfg(windows)]

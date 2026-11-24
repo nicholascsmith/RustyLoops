@@ -7,6 +7,7 @@ import type { Release } from '../lib/changelog';
 import { projectNew } from '../state/actions';
 import { checkUpdates, closeUpdateDialog, closeWelcome, closeWhatsNew, installUpdate, openReleasePage, openUpdateDialog, setAutoUpdate, showWhatsNew, startUpdate, upd } from '../state/updates';
 import { DialogBoundary } from '../ui/PanelBoundary';
+import { FORK } from '../fork';
 
 const mb = (n: number) => (n / 1e6).toFixed(n >= 1e8 ? 0 : 1);
 
@@ -214,6 +215,7 @@ export function UpdatesSettings(p: { OnOff: (a: { on: () => boolean; set: (v: bo
       <div class="form">
         <label>{t('d.upd.version')}</label>
         <div class="updrow"><b>{s().current || '—'}</b><button class="smallbtn" onClick={() => showWhatsNew()}>{t('d.upd.whatsnew')}</button></div>
+        <Show when={FORK.updates}>
         <label>{t('d.upd.auto')}</label>
         {p.OnOff({ on: () => s().autoUpdate, set: v => void setAutoUpdate(v), title: t('d.upd.auto.tip') }) as never}
         <label />
@@ -230,6 +232,7 @@ export function UpdatesSettings(p: { OnOff: (a: { on: () => boolean; set: (v: bo
             <Match when={s().upToDateAt != null}><span class="muted">{t('d.upd.uptodate')}</span></Match>
           </Switch>
         </div>
+        </Show>
       </div>
     </>
   );

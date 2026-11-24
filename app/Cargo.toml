@@ -26,18 +26,11 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 wave-engine.workspace = true
 tauri-plugin-mcp-bridge = "0.13"
-wave-rmvpe.workspace = true
-wave-stems.workspace = true
-wave-chords.workspace = true
 hound.workspace = true
 wave-audio-io.workspace = true
 wave-session.workspace = true
 wave-midi-in.workspace = true
 wave-cli = { path = "../crates/cli" }
-wave-vst3 = { path = "../crates/vst3-host" }
-wave-lv2 = { path = "../crates/lv2-host" }
-wave-plugin-windows = { path = "../crates/plugin-windows" }
-wave-plugin-scan.workspace = true
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-updater = "2"
@@ -57,7 +50,3 @@ windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_
 
 # Plugin windows on Linux: GTK's glib loop runs them and the plugins' IRunLoop; the main
 # window's X11 id keeps them above it (the versions Tauri itself uses).
-[target.'cfg(target_os = "linux")'.dependencies]
-glib = "0.18"
-gtk = "0.18"
-gdkx11 = "0.18"

@@ -5,8 +5,6 @@
 mod actions;
 mod boot;
 mod chords_actions;
-#[cfg(test)]
-mod chords_actions_tests;
 mod cli_shim;
 mod fx_chains;
 mod headless;
@@ -20,14 +18,11 @@ mod models;
 mod pitch_actions;
 #[cfg(target_os = "linux")]
 mod plugin_loop;
-pub mod plugin_probe;
 mod plugins;
 mod project_launch;
 mod recovery;
 mod settings;
 mod stems_actions;
-#[cfg(test)]
-mod stems_actions_tests;
 #[cfg(test)]
 mod ui_prefixes_tests;
 mod updater;
@@ -221,6 +216,8 @@ async fn transport_set(
     rec_automation: Option<bool>,
     rec_auto_latch: Option<bool>,
 ) -> R<wave_engine::TransportDto> {
+    // audio recording and input monitoring are not part of this build: the mic never opens
+    let (rec_audio, monitor) = (rec_audio.map(|_| false), monitor.map(|_| false));
     let e = app.engine.clone();
     let t = tauri::async_runtime::spawn_blocking(move || {
         if let Some(b) = start_beat {
@@ -540,7 +537,7 @@ async fn chords_model_install(handle: AppHandle) -> R<chords_actions::ChordModel
     let h = handle.clone();
     let res = tauri::async_runtime::spawn_blocking(move || {
         models::fetch(&chords_actions::download(), None, |done, total| {
-            let _ = h.emit("model-progress", json!({ "id": wave_chords::MODEL_ID, "done": done, "total": total }));
+            let _ = h.emit("model-progress", json!({ "id": chords_actions::MODEL_ID, "done": done, "total": total }));
         })
     })
     .await
@@ -548,7 +545,7 @@ async fn chords_model_install(handle: AppHandle) -> R<chords_actions::ChordModel
     match res {
         Ok(()) => Ok(chords_actions::status()),
         Err(e) => {
-            let _ = handle.emit("model-progress", json!({ "id": wave_chords::MODEL_ID, "done": 0, "total": 0, "error": e }));
+            let _ = handle.emit("model-progress", json!({ "id": chords_actions::MODEL_ID, "done": 0, "total": 0, "error": e }));
             Err(e)
         }
     }
@@ -586,7 +583,7 @@ async fn stems_model_install(app: St<'_>, handle: AppHandle) -> R<Value> {
     let h = handle.clone();
     let res = tauri::async_runtime::spawn_blocking(move || {
         models::fetch(&stems_actions::download(), Some(&a.stems_cancel), |done, total| {
-            let _ = h.emit("model-progress", json!({ "id": wave_stems::MODEL_ID, "done": done, "total": total }));
+            let _ = h.emit("model-progress", json!({ "id": stems_actions::MODEL_ID, "done": done, "total": total }));
         })
     })
     .await
@@ -595,7 +592,7 @@ async fn stems_model_install(app: St<'_>, handle: AppHandle) -> R<Value> {
         Ok(()) => Ok(json!(stems_actions::status())),
         Err(e) if e == models::DOWNLOAD_CANCELLED => Ok(json!({ "cancelled": true })),
         Err(e) => {
-            let _ = handle.emit("model-progress", json!({ "id": wave_stems::MODEL_ID, "done": 0, "total": 0, "error": e }));
+            let _ = handle.emit("model-progress", json!({ "id": stems_actions::MODEL_ID, "done": 0, "total": 0, "error": e }));
             Err(e)
         }
     }
@@ -1199,7 +1196,7 @@ async fn plugin_editor(
     subtitle: Option<String>,
     pinned: Option<bool>,
 ) -> R<()> {
-    let label = wave_plugin_windows::Label { title: title.unwrap_or_default(), subtitle: subtitle.unwrap_or_default(), tag: fx_id };
+    let label = plugins::Label { title: title.unwrap_or_default(), subtitle: subtitle.unwrap_or_default(), tag: fx_id };
     app.plugins.editor(&handle, fx_id, open, label, pinned.unwrap_or(false))
 }
 
@@ -1260,8 +1257,8 @@ async fn app_info(app: St<'_>, handle: AppHandle) -> R<updater::AppInfo> {
         version: handle.package_info().version.to_string(),
         seen_version: s.seen_version.clone(),
         auto_update: !s.no_auto_update,
-        plugin_editors: wave_plugin_windows::available().is_ok(),
-        plugin_editors_why: wave_plugin_windows::available().err().map(|e| e.to_string()),
+        plugin_editors: false,
+        plugin_editors_why: Some(plugins::NOT_HOSTED.to_string()),
     })
 }
 
@@ -1349,11 +1346,7 @@ async fn cli_status(app: St<'_>) -> R<CliStatus> {
 
 // ---------------------------------------------------------------- boot
 
-/// Plugin editors detach first, then audio stops, then instances go.
-fn shutdown(h: &AppHandle, app: &App) {
-    if let Some(w) = h.try_state::<wave_plugin_windows::Service>() {
-        w.close_all();
-    }
+fn shutdown(_h: &AppHandle, app: &App) {
     app.audio.stop();
     // a normal exit: the user already answered the unsaved-changes question
     app.recovery.close();
@@ -1379,9 +1372,6 @@ pub fn ensure_c_numeric_locale() {
 }
 
 pub fn run(project_arg: Option<&str>) {
-    // plugin windows are X11: keep them above Synkopa's window under Wayland too
-    #[cfg(target_os = "linux")]
-    plugin_loop::prefer_x11();
     // WebKitGTK's DMA-BUF renderer lets the Playlist's scroll lag its canvases while zooming
     #[cfg(target_os = "linux")]
     plugin_loop::webkit_renderer();
@@ -1555,6 +1545,8 @@ fn start_app(tapp: &mut tauri::App, boot: Arc<boot::Boot>, reopen_last: bool) {
     // reopened on a thread of its own once the window exists (decoding its audio is slow)
     let last_project = settings.last_project.as_ref().filter(|p| reopen_last && std::path::Path::new(p).is_file()).cloned();
     let engine = Engine::new(Project::empty(), plugins.factory());
+    // Record captures notes and automation only (see `transport_set`)
+    engine.set_rec_filter(Some(false), Some(true), None, None);
     let startup_revision = engine.revision();
     let loading = boot.loading();
     let events: Arc<std::sync::OnceLock<AppHandle>> = Arc::new(std::sync::OnceLock::new());
@@ -1617,38 +1609,6 @@ fn start_app(tapp: &mut tauri::App, boot: Arc<boot::Boot>, reopen_last: bool) {
     });
 
     tapp.manage(app.clone());
-    // plugin work that must happen on the UI thread is posted here
-    let mh = tapp.handle().clone();
-    wave_vst3::set_main_thread_executor(move |job| {
-        let _ = mh.run_on_main_thread(job);
-    });
-    // Linux: GTK's loop reads the plugin windows' X11 connection and serves the plugins' IRunLoop
-    #[cfg(target_os = "linux")]
-    plugin_loop::install();
-    let plugin_windows = wave_plugin_windows::Service::new();
-    // plugin editors belong to the main window: they open in front of it and stay there
-    #[cfg(windows)]
-    if let Some(hwnd) = tapp.get_webview_window("main").and_then(|w| w.hwnd().ok()) {
-        plugin_windows.set_owner_window(hwnd.0 as isize);
-    }
-    #[cfg(target_os = "linux")]
-    if let Some(xid) = tapp.get_webview_window("main").and_then(|w| plugin_loop::owner_xid(&w)) {
-        plugin_windows.set_owner_window(xid as isize);
-    }
-    // the gear in a plugin window's header: Synkopa's own window for that effect or channel
-    let sh = tapp.handle().clone();
-    plugin_windows.set_settings_handler(std::rc::Rc::new(move |id| {
-        if let Some(w) = sh.get_webview_window("main") {
-            let _ = w.set_focus();
-        }
-        let _ = sh.emit("plugin-settings", json!({ "id": id }));
-    }));
-    // the pin in a plugin window's header: the UI keeps the per-plugin choice for next time
-    let ph = tapp.handle().clone();
-    plugin_windows.set_pinned_handler(std::rc::Rc::new(move |id, pinned| {
-        let _ = ph.emit("plugin-pin", json!({ "id": id, "pinned": pinned }));
-    }));
-    tapp.manage(plugin_windows);
     let _ = events.set(tapp.handle().clone());
     // open the audio device off the UI thread
     let a = app.clone();

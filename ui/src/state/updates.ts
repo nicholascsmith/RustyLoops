@@ -6,6 +6,7 @@ import { parseChangelog } from '../lib/changelog';
 import changelog from '../../../CHANGELOG.md?raw';
 import { guardUnsaved } from './actions';
 import { EMPTY_UPD, UpdateController, type UpdState } from './updateCtl';
+import { FORK } from '../fork';
 
 const [upd, setUpd] = createSignal<UpdState>(EMPTY_UPD);
 export { upd };
@@ -20,7 +21,7 @@ export async function initUpdates(): Promise<void> {
   if (ctl) return;
   ctl = new UpdateController(be(), parseChangelog(changelog), { confirmRestart: () => guardUnsaved(t('d.upd.guard')) }, setUpd);
   await ctl.init();
-  const auto = () => { if (ctl?.state.autoUpdate) void ctl.check(false); };
+  const auto = () => { if (FORK.updates && ctl?.state.autoUpdate) void ctl.check(false); };
   setTimeout(auto, FIRST_CHECK_MS);
   setInterval(auto, EVERY_MS);
 }

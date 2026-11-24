@@ -8,6 +8,7 @@ import { barsText, clearChannel, fillEvery, notesText, rotate, stepsOf } from '.
 import { cleanGroup, rackGroups } from '../lib/rackGroups';
 import { libGroup, loadStdLib, stdLibGroups } from '../state/library';
 import { ensurePluginScan, pluginScan, runPluginScan } from '../state/pluginScan';
+import { FORK } from '../fork';
 import { isTypingKey } from '../state/typingKeys';
 import { commit } from '../state/edit';
 import { pickInsert, type InsertChoice } from '../ui/InsertPicker';
@@ -159,8 +160,8 @@ function instrumentItems(pick: (p: InstrumentPick) => void, file: (f?: LibFile) 
     items.push({ t: 'item', label: t('b.pe.menuSynthEmpty'), glyph: PICK_GLYPH.emptySynth, act: () => pick({ kind: 'synth', preset: null }) });
   }
   items.push({ t: 'sep' }, { t: 'title', label: t('b.pe.menuSampled') }, { t: 'item', label: t('b.pe.menuKeys'), glyph: PICK_GLYPH.keys, act: () => pick({ kind: 'keys' }) });
-  items.push({ t: 'item', label: t('b.pe.menuMusicBox'), glyph: PICK_GLYPH.musicBox, act: () => pick({ kind: 'musicbox' }) });
-  items.push({ t: 'sep' }, { t: 'title', label: t('b.pe.menuPlugins') }, ...pluginItems(pick));
+  if (FORK.analysis) items.push({ t: 'item', label: t('b.pe.menuMusicBox'), glyph: PICK_GLYPH.musicBox, act: () => pick({ kind: 'musicbox' }) });
+  if (FORK.plugins) items.push({ t: 'sep' }, { t: 'title', label: t('b.pe.menuPlugins') }, ...pluginItems(pick));
   return items;
 }
 

@@ -55,20 +55,7 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "resources/keys/": "keys/",
-      "resources/plugins/": "plugins/"
-    },
-    "linux": {
-      "deb": {
-        "depends": [
-          "liblilv-0-0"
-        ]
-      },
-      "rpm": {
-        "depends": [
-          "liblilv-0.so.0()(64bit)"
-        ]
-      }
+      "resources/keys/": "keys/"
     }
   }
 }

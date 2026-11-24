@@ -8,6 +8,7 @@ import { t } from '../lib/i18n';
 import * as A from '../state/actions';
 import { insName, S } from '../state/store';
 import { FXMETA, Icon } from '../ui/icons';
+import { FORK } from '../fork';
 
 export function PitchCorrectButton(props: { insert: () => Id | null; keyScale?: () => { key: number; scale: number } }) {
   const ins = () => { const id = props.insert(); return id == null ? null : S.project.inserts.find(m => m.id === id) ?? null; };
@@ -19,6 +20,7 @@ export function PitchCorrectButton(props: { insert: () => Id | null; keyScale?: 
     if (f) { A.openPlug(f.id); return; }
     A.addPitchCorrect(m.id, props.keyScale?.());
   };
+  if (!FORK.vocal) return null;
   return (
     <button class="smallbtn pcbtn" disabled={!!why()} onClick={click}
       title={why() ?? (on() ? t('d.pc.open', { name: insName(ins()!) }) : t('d.pc.add', { name: insName(ins()!) }))}>

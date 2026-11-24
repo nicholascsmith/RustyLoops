@@ -7,19 +7,10 @@ members = [
     "crates/cli",
     "app",
     "crates/audio-file",
-    "crates/plugin-scan",
-    "crates/vst3-host",
-    "crates/lv2-host",
-    "crates/plugin-windows",
-    "crates/rmvpe",
-    "crates/tune-bench",
     "crates/midi-in",
     "crates/perf",
     "crates/keys-prep",
     "crates/stretch",
-    "crates/demo-synth",
-    "crates/stems",
-    "crates/chords",
     # the vendored automation bridge: a member so its handshake regression test runs in CI
     "crates/vendor/mcp-bridge",
 ]
@@ -52,16 +43,11 @@ serde_json = "1"
 base64 = "0.22"
 interprocess = "2"
 uuid = { version = "1", features = ["v4"] }
-dirs = "6"
 
 wave-engine = { path = "crates/engine" }
 wave-audio-io = { path = "crates/audio-io" }
 wave-audio-file = { path = "crates/audio-file" }
-wave-plugin-scan = { path = "crates/plugin-scan" }
 wave-session = { path = "crates/session" }
-wave-rmvpe = { path = "crates/rmvpe" }
-wave-stems = { path = "crates/stems" }
-wave-chords = { path = "crates/chords" }
 wave-midi-in = { path = "crates/midi-in" }
 wave-stretch = { path = "crates/stretch" }
 

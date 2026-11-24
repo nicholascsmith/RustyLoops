@@ -54,6 +54,7 @@ import { rollDown, rollMove } from './roll/grid';
 import { buildTransformOp, TOOL_META, type ToolId } from './roll/noteTools';
 import type { TransformVerb } from '../api/types';
 import { STAMP_INVS, STAMP_TYPES } from './roll/stamp';
+import { FORK } from '../fork';
 
 const LANE_H = 92;
 /** Below this much room for the grid and the velocity lane together, the lane hides so the notes keep the space (Alt+wheel still sets velocity). */
@@ -886,7 +887,7 @@ function Roll(props: { z: number; docked?: boolean }) {
         {/* the song's key, always in view (shared with the toolbar): views/KeyBadge.tsx */}
         <KeyBadge class="toolmenu" />
         <div style={{ flex: 1 }} />
-        <Show when={vocals().length > 0 && chanNotes().length > 0}>
+        <Show when={FORK.vocal && vocals().length > 0 && chanNotes().length > 0}>
           <button class="smallbtn" style={{ 'align-self': 'center' }} title={t('b.pr.vocalTip')} onClick={vocalRef}>♪ {t('b.pr.vocal')}{vocals().length > 1 ? ' …' : ''}</button>
         </Show>
         <Show when={sel().size > 0}>

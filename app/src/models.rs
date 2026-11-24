@@ -1,56 +1,36 @@
-//! Downloaded models. RMVPE (pitch) is optional: downloaded only when the user asks (after the
-//! licence note), verified by SHA-256, loaded into the engine as its F0 estimator; without it
-//! the engine analyses with YIN. HTDemucs (stem separation, `stems_actions.rs`) is downloaded
-//! the same way the first time stems are extracted.
+//! Downloaded models. This build ships none of them: the RMVPE pitch model, chord detection
+//! and stem separation are removed (no ONNX Runtime), so the engine analyses pitch with YIN.
+//! [`fetch`] stays for upstream's callers and refuses a [`Download::none`].
 
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use wave_engine::Engine;
 
+/// The answer of every command of a removed analysis feature.
+pub const NOT_IN_BUILD: &str = "not available in this build (stem separation, chord detection and the pitch model are removed)";
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelStatus {
     pub id: &'static str,
-    pub name: &'static str,
-    pub bytes: u64,
     pub installed: bool,
-    /// The detector the engine analyses with right now: "rmvpe" or "yin".
+    /// The detector the engine analyses with: always "yin" here.
     pub backend: String,
-    pub license_note: &'static str,
-    pub license_url: &'static str,
-    pub path: String,
+    pub unavailable: &'static str,
     pub error: Option<String>,
 }
 
 pub fn status(engine: &Engine, error: Option<String>) -> ModelStatus {
-    let path = wave_rmvpe::model_path();
-    ModelStatus {
-        id: "rmvpe",
-        name: "RMVPE vocal pitch model",
-        bytes: wave_rmvpe::MODEL_BYTES,
-        installed: path.is_file(),
-        backend: engine.f0_backend().to_string(),
-        license_note: wave_rmvpe::LICENSE_NOTE,
-        license_url: wave_rmvpe::LICENSE_URL,
-        path: path.display().to_string(),
-        error,
-    }
+    ModelStatus { id: "rmvpe", installed: false, backend: engine.f0_backend().to_string(), unavailable: NOT_IN_BUILD, error }
 }
 
-/// Loads the installed model into the engine. `Ok(false)` when nothing is installed.
-pub fn activate(engine: &Engine) -> Result<bool, String> {
-    let path = wave_rmvpe::model_path();
-    if !path.is_file() {
-        return Ok(false);
-    }
-    let m = wave_rmvpe::Rmvpe::load(&path)?;
-    engine.set_f0_estimator(Some(Arc::new(m)));
-    Ok(true)
+/// Nothing to load: `Ok(false)`, the engine keeps YIN.
+pub fn activate(_engine: &Engine) -> Result<bool, String> {
+    Ok(false)
 }
 
 /// One downloadable model file: where it comes from, what it must be, where it goes.
@@ -61,14 +41,15 @@ pub struct Download {
     pub dst: PathBuf,
 }
 
-/// The RMVPE download.
-pub fn rmvpe() -> Download {
-    Download { url: wave_rmvpe::MODEL_URL, sha256: wave_rmvpe::MODEL_SHA256, bytes: wave_rmvpe::MODEL_BYTES, dst: wave_rmvpe::model_path() }
+impl Download {
+    /// A model this build does not have: [`fetch`] refuses it without touching the network.
+    pub fn none() -> Self {
+        Download { url: "", sha256: "", bytes: 0, dst: PathBuf::new() }
+    }
 }
 
-/// The RMVPE model (see [`fetch`]).
-pub fn install(progress: impl Fn(u64, u64)) -> Result<(), String> {
-    fetch(&rmvpe(), None, progress)
+pub fn install(_progress: impl Fn(u64, u64)) -> Result<(), String> {
+    Err(NOT_IN_BUILD.into())
 }
 
 /// What [`fetch`] returns when its `cancel` flag was raised (nothing is left behind).
@@ -78,6 +59,9 @@ pub const DOWNLOAD_CANCELLED: &str = "download cancelled";
 /// the size and checksum match. Blocking. `cancel` stops it between chunks
 /// ([`DOWNLOAD_CANCELLED`]); an existing file is kept as it is.
 pub fn fetch(d: &Download, cancel: Option<&AtomicBool>, progress: impl Fn(u64, u64)) -> Result<(), String> {
+    if d.url.is_empty() {
+        return Err(NOT_IN_BUILD.into());
+    }
     // one install at a time: the app's buttons and `synkopa f0-model --install` /
     // `synkopa stems --install` stream to the same `.part` files. A second caller waits, then
     // finds the model in place.

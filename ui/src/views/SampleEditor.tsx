@@ -32,6 +32,7 @@ import { moveWindow } from './FxWindow';
 import { PitchCorrectButton } from './PitchCorrectButton';
 import { SlicePanel } from './SlicePanel';
 import { PanelBoundary, WindowBoundary } from '../ui/PanelBoundary';
+import { FORK } from '../fork';
 
 type SampleChannel = Extract<Channel, { kind: 'sample' }>;
 type Fade = 'fadeIn' | 'fadeOut';
@@ -404,10 +405,10 @@ function ClipSample(props: { clip: () => Clip; source: () => Source }) {
         nullLabel={t('d.smp.likeTrack', { name: insName(S.project.inserts.find(m => m.id === trackInsert()) ?? S.project.inserts[0]) })}
         ops={insert => [put({ insert })]} free={{ name: src().name, color: src().color }}
         label={t('d.smp.routing')} wheelKey={id + 'route'} title={t('d.smp.mixer.tip', { track: S.project.tracks[c().track]?.name ?? '' })} />
-      <button class="smallbtn" title={t('d.smp.pitchEd.tip')} onClick={() => { const cid = c().id; A.stopSamplePreview(); A.openPitchEditor(cid); }}>
+      <Show when={FORK.vocal}><button class="smallbtn" title={t('d.smp.pitchEd.tip')} onClick={() => { const cid = c().id; A.stopSamplePreview(); A.openPitchEditor(cid); }}>
         {t('d.smp.pitchEd')}{c().tune ? ' •' : ''}
-      </button>
-      <button class="smallbtn" title={t('a.pl.extractStemsTip')} onClick={() => openStems(c().id)} data-smp-stems>{t('d.smp.stems')}</button>
+      </button></Show>
+      <Show when={FORK.analysis}><button class="smallbtn" title={t('a.pl.extractStemsTip')} onClick={() => openStems(c().id)} data-smp-stems>{t('d.smp.stems')}</button></Show>
       <PitchCorrectButton insert={() => insert() ?? null} />
     </>}
     toggle={key => {
