@@ -10,6 +10,7 @@ import * as A from '../state/actions';
 import { getPeaks, peakRange, peaksVersion } from '../state/peaks';
 import { S } from '../state/store';
 import { openMenu, say, setU, U } from '../state/ui';
+import { FORK } from '../fork';
 import { track } from '../ui/drag';
 import { fitCanvas } from '../ui/frameLoop';
 import { dropClipAt, dropPatternsAt, gridPoint } from './Playlist';
@@ -710,7 +711,7 @@ function LibraryTab() {
         </Show>
         <div class="bnote">{t('d.br.libnote')}</div>
         {/* kits not downloaded yet: used once in a while, so they wait behind one row at the end of the list */}
-        <Show when={!searching() && avail().length}>
+        <Show when={FORK.downloads && !searching() && avail().length}>
           <button class="bmore" aria-expanded={moreOpen() ? 'true' : 'false'} aria-label={t('d.br.more')} title={t('d.br.more')} onClick={() => setMoreOpen(v => !v)}>
             <span class={['plus', { open: moreOpen() }]}>+</span>
           </button>

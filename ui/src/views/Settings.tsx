@@ -252,12 +252,14 @@ const RACK_SPACING_KEYS = Object.keys(RACK_SPACINGS) as RackSpacing[];
 function GeneralSection() {
   return (
     <>
+      <Show when={FORK.polish}>
       <div class="form">
         <Row label={t('settings.language')}>
           <Segmented options={[t('settings.english'), t('settings.polish')]} value={() => prefs().lang === 'pl' ? 1 : 0}
             pick={i => setPref('lang', i === 1 ? 'pl' : 'en')} />
         </Row>
       </div>
+      </Show>
       <div class="sechd">{t('d.set.sec.project')}</div>
       <div class="form">
         <Row label={t('d.set.autosave')} desc={t('d.set.autosave.tip')}>

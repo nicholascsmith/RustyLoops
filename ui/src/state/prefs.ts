@@ -6,6 +6,7 @@ import { be } from '../api/backend';
 import * as A from './actions';
 import { U } from './ui';
 import { setFullscreen } from './fullscreen';
+import { FORK } from '../fork';
 
 export interface Prefs {
   /** interface language */
@@ -37,7 +38,7 @@ const KEY = 'wave.prefs';
 const DEFAULTS: Prefs = { lang: 'en', uiScale: 1, clipIcons: true, noteAudition: true, autosaveMin: 2, hints: true, cpuMeter: true, startFullscreen: false, rackSpacing: 'normal', rackAutoH: true };
 
 function load(): Prefs {
-  try { const v = JSON.parse(localStorage.getItem(KEY) ?? '{}'); return { ...DEFAULTS, ...v, lang: v.lang === 'pl' ? 'pl' : 'en', rackSpacing: ['roomy', 'wide'].includes(v.rackSpacing) ? v.rackSpacing : 'normal' }; } catch { return { ...DEFAULTS }; }
+  try { const v = JSON.parse(localStorage.getItem(KEY) ?? '{}'); return { ...DEFAULTS, ...v, lang: FORK.polish && v.lang === 'pl' ? 'pl' : 'en', rackSpacing: ['roomy', 'wide'].includes(v.rackSpacing) ? v.rackSpacing : 'normal' }; } catch { return { ...DEFAULTS }; }
 }
 
 const [prefs, setPrefsSig] = createSignal<Prefs>(DEFAULTS);

@@ -134,7 +134,7 @@ function UpdateDialog() {
  * several get a larger window with a list of versions to jump between (the one in view is marked).
  */
 function WhatsNewDialog() {
-  return <Show when={upd().news}>{news => <DialogBoundary name={t('d.news.title')} close={() => void closeWhatsNew()} z={250}><WhatsNew news={news()} from={upd().newsFrom} /></DialogBoundary>}</Show>;
+  return <Show when={FORK.whatsNew && upd().news}>{news => <DialogBoundary name={t('d.news.title')} close={() => void closeWhatsNew()} z={250}><WhatsNew news={news()} from={upd().newsFrom} /></DialogBoundary>}</Show>;
 }
 
 function WhatsNew(p: { news: Release[]; from: string | null }) {
@@ -214,7 +214,7 @@ export function UpdatesSettings(p: { OnOff: (a: { on: () => boolean; set: (v: bo
       <div class="sechd">{t('d.upd.sec')}</div>
       <div class="form">
         <label>{t('d.upd.version')}</label>
-        <div class="updrow"><b>{s().current || '—'}</b><button class="smallbtn" onClick={() => showWhatsNew()}>{t('d.upd.whatsnew')}</button></div>
+        <div class="updrow"><b>{s().current || '—'}</b><Show when={FORK.whatsNew}><button class="smallbtn" onClick={() => showWhatsNew()}>{t('d.upd.whatsnew')}</button></Show></div>
         <Show when={FORK.updates}>
         <label>{t('d.upd.auto')}</label>
         {p.OnOff({ on: () => s().autoUpdate, set: v => void setAutoUpdate(v), title: t('d.upd.auto.tip') }) as never}

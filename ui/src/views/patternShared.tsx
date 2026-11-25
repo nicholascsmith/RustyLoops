@@ -159,7 +159,7 @@ function instrumentItems(pick: (p: InstrumentPick) => void, file: (f?: LibFile) 
     }
     items.push({ t: 'item', label: t('b.pe.menuSynthEmpty'), glyph: PICK_GLYPH.emptySynth, act: () => pick({ kind: 'synth', preset: null }) });
   }
-  items.push({ t: 'sep' }, { t: 'title', label: t('b.pe.menuSampled') }, { t: 'item', label: t('b.pe.menuKeys'), glyph: PICK_GLYPH.keys, act: () => pick({ kind: 'keys' }) });
+  if (FORK.keys) items.push({ t: 'sep' }, { t: 'title', label: t('b.pe.menuSampled') }, { t: 'item', label: t('b.pe.menuKeys'), glyph: PICK_GLYPH.keys, act: () => pick({ kind: 'keys' }) });
   if (FORK.analysis) items.push({ t: 'item', label: t('b.pe.menuMusicBox'), glyph: PICK_GLYPH.musicBox, act: () => pick({ kind: 'musicbox' }) });
   if (FORK.plugins) items.push({ t: 'sep' }, { t: 'title', label: t('b.pe.menuPlugins') }, ...pluginItems(pick));
   return items;
@@ -221,7 +221,7 @@ export function patItems(p: Pattern, x: number, y: number): MenuItem[] {
     { t: 'item', label: t('b.pm.rename'), kbd: p.id === curPat()?.id ? 'F2' : undefined, act: () => openRename(x, y, p.name, v => renamePattern(p, v)) },
     { t: 'item', label: t('b.pm.clone'), kbd: p.id === curPat()?.id ? 'Shift+Ctrl+C' : undefined, act: () => clonePattern(p) },
     { t: 'item', label: t('b.pm.split'), disabled: new Set(p.notes.map(n => n.ch)).size < 2, title: t('b.pm.splitTitle'), act: () => splitByChannel(p) },
-    { t: 'item', label: t('d.midi.mnExportPat'), disabled: !p.notes.length, act: () => void midiExport(p.id) },
+    ...(FORK.midiExport ? [{ t: 'item', label: t('d.midi.mnExportPat'), disabled: !p.notes.length, act: () => void midiExport(p.id) } as MenuItem] : []),
     { t: 'item', label: t('b.pm.addBar'), kbd: barsText(p.len / 4), act: () => addBar(p) },
     { t: 'item', label: t('b.pm.removeBar'), disabled: p.len <= 4, title: t('b.pm.removeBarTitle'), act: () => removeBar(p) },
     { t: 'swatches', current: p.color, pick: col => recolorPattern(p, col) },
