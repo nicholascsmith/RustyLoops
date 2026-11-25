@@ -12,10 +12,14 @@ pub fn wants_no_dmabuf(user: Option<&str>) -> bool {
     user.is_none()
 }
 
+/// Rusty Loops runs on AMD only, so it keeps WebKitGTK's faster DMA-BUF renderer instead of
+/// upstream's NVIDIA workaround.
+const NVIDIA_WORKAROUND: bool = false;
+
 /// Apply [`wants_no_dmabuf`] to this process. Call first thing, before GTK starts and before any
 /// other thread exists (it sets an environment variable).
 pub fn webkit_renderer() {
-    if wants_no_dmabuf(std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").ok().as_deref()) {
+    if NVIDIA_WORKAROUND && wants_no_dmabuf(std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").ok().as_deref()) {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }
 }

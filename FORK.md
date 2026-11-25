@@ -24,6 +24,8 @@ These rules hold the layer thin and the syncs cheap.
   (`import.meta.env.MODE === 'test'`), as `ask` and `brand` do, so those tests keep passing.
 - **Backend.** `app/src/lib.rs`, `app/Cargo.toml`, `crates/cli` and the files under `app/src`
   that served the removed features drop their wiring to the removed crates.
+  `app/src/plugin_loop.rs` turns off upstream's NVIDIA workaround (`NVIDIA_WORKAROUND`), which
+  disabled WebKitGTK's DMA-BUF renderer; the fork targets AMD only.
 - **Name.** `app/tauri.conf.json`, `app/tauri.linux.conf.json` and `ui/index.html` carry
   the Rusty Loops name and identifiers.
 
