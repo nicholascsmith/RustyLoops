@@ -1,4 +1,5 @@
 import { be } from '../api/backend';
+import { FORK } from '../fork';
 import { askPrompt, askUrl } from '../lib/askLink';
 import { t } from '../lib/i18n';
 import { notify } from '../state/notice';
@@ -18,6 +19,7 @@ function currentView(): string {
 
 /** Open the browser with the question, or start a Synkopa help chat when none was entered. */
 export async function askChatGPT(question = t('d.ask.starter')): Promise<boolean> {
+  if (!FORK.ask) return false;
   const prompt = askPrompt(question, { version: upd().current || null, view: currentView() });
   const copy = askUrl('chatgpt', prompt) == null;
   if (copy) {
@@ -41,6 +43,7 @@ export async function askChatGPT(question = t('d.ask.starter')): Promise<boolean
 
 /** The labelled button beside the application menus. */
 export function AskButton() {
+  if (!FORK.ask) return null;
   return (
     <button class="askbtn" title={t('d.ask.tip')} onClick={() => void askChatGPT()}>
       <svg width="13" height="13" viewBox={APP_GLYPH.ask.vb} aria-hidden="true"><path d={APP_GLYPH.ask.d} fill="currentColor" /></svg>

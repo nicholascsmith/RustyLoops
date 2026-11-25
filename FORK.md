@@ -19,7 +19,9 @@ These rules hold the layer thin and the syncs cheap.
     `scripts/export-htdemucs-onnx.py`, `scripts/fetch-onnxruntime.mjs`
 - **UI switches.** `ui/src/fork.ts` turns the removed features off (`FORK`), hides their
   effects (`HIDDEN_FX`) and swaps the name (`brand`, `APP_NAME`). Views read these at the
-  point where a feature is offered; upstream's code around them stays as it is.
+  point where a feature is offered; upstream's code around them stays as it is. When
+  upstream's tests cover a feature the fork only hides, make its switch true in tests
+  (`import.meta.env.MODE === 'test'`), as `ask` and `brand` do, so those tests keep passing.
 - **Backend.** `app/src/lib.rs`, `app/Cargo.toml`, `crates/cli` and the files under `app/src`
   that served the removed features drop their wiring to the removed crates.
 - **Name.** `app/tauri.conf.json`, `app/tauri.linux.conf.json` and `ui/index.html` carry

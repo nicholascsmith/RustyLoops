@@ -15,6 +15,9 @@ export const FORK = {
   audioRecording: false,
   /** The built-in updater: upstream's releases would replace this build with the full app. */
   updates: false,
+  /** Ask ChatGPT: the menu-row button, the Help menu item, F1 and the palette's question row.
+   *  On in tests, so upstream's tests keep checking the code the fork only hides. */
+  ask: import.meta.env.MODE === 'test',
 } as const;
 
 /** Built-in effects the picker does not offer (a project that has one still plays it). */

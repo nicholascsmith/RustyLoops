@@ -458,7 +458,7 @@ function MenuBar() {
       { t: 'item', label: t('a.mn.fullscreen'), kbd: 'F11', checked: isFullscreen(), act: () => void toggleFullscreen() },
     ]],
     ['a.mn.help', () => [
-      { t: 'item', label: t('d.ask.button'), glyph: G.ask, kbd: 'F1', act: () => void askChatGPT() },
+      ...(FORK.ask ? [{ t: 'item', label: t('d.ask.button'), glyph: G.ask, kbd: 'F1', act: () => void askChatGPT() } as MenuItem] : []),
       { t: 'item', label: t('a.cmd.title'), glyph: G.shortcuts, kbd: 'Ctrl+K', act: () => setPaletteOpen(true) },
       { t: 'item', label: t('a.mn.shortcuts'), glyph: G.shortcuts, kbd: '?', act: () => setU('help', true) },
       { t: 'sep' },

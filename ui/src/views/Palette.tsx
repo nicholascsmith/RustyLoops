@@ -14,6 +14,7 @@ import { curPat } from '../state/pattern';
 import { S } from '../state/store';
 import { setU, U } from '../state/ui';
 import { askChatGPT } from './Ask';
+import { FORK } from '../fork';
 import { patItems } from './patternShared';
 import { DialogBoundary } from '../ui/PanelBoundary';
 
@@ -68,7 +69,8 @@ export function Palette() {
     return [...by.entries()];
   });
   // typed text can always be asked instead: the last row, and the only one when no command matches
-  const asks = () => q().trim() !== '';
+  const typed = () => q().trim() !== '';
+  const asks = () => FORK.ask && typed();
   const rows = () => shown().length + (asks() ? 1 : 0);
   effect(() => { if (!paletteOpen()) setQ(''); });
   effect(() => { q(); setAt(0); });
@@ -120,8 +122,9 @@ export function Palette() {
                 )}</For>
               </>
             )}</For>
-            <Show when={asks()}>
+            <Show when={typed()}>
               <Show when={!shown().length}><div class="cmdnone">{t('a.cmd.none', { q: q().trim() })}</div></Show>
+              <Show when={FORK.ask}>
               <div class="cmdsec">{t('a.cmd.askSec')}</div>
               <div role="option" aria-selected={at() === shown().length ? 'true' : 'false'} class={['cmd ask', { on: at() === shown().length }]}
                 onPointerMove={() => setAt(shown().length)} onClick={ask}>
@@ -130,6 +133,7 @@ export function Palette() {
                 <span class="fill" />
                 <kbd>Enter</kbd>
               </div>
+              </Show>
             </Show>
           </div>
         </div>
