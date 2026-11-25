@@ -1,5 +1,8 @@
 # AGENTS.md
 
+This repository is the Rusty Loops fork of Synkopa. Read `FORK.md` first: it lists what the
+fork removes, how to make fork changes, and how to sync with upstream.
+
 ## Product Standard
 
 Synkopa  is a professional creative tool, not a demo. Solve the musician's
@@ -81,7 +84,7 @@ it. Prefer current primary sources and verify version-sensitive claims.
 Unless the user asks for a permanent artifact, keep the research summary and
 source links in chat rather than adding a research document to the repository.
 
-by default we want to use fl studio like behaviors usually - if possible you can inspect fl studio on computer yourself. 
+by default we want to use fl studio like behaviors usually - if possible you can inspect fl studio on computer yourself.
 
 ## Product and UX Reasoning
 
@@ -167,5 +170,4 @@ pnpm --dir ui build
 
 A change is done only when the approved workflow works end to end with realistic
 data, relevant edge cases are handled, performance remains appropriate, and no
-placeholder or integration gap remains.  
-
+placeholder or integration gap remains.
